@@ -1,0 +1,80 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/budimanjojo/talhelper/master/pkg/config/schemas/talconfig.json
+---
+# renovate: datasource=docker depName=ghcr.io/siderolabs/installer
+talosVersion: v1.9.4
+# renovate: datasource=docker depName=ghcr.io/siderolabs/kubelet
+kubernetesVersion: v1.32.2
+
+clusterName: kubernetes
+endpoint: https://192.168.42.40:6443
+
+clusterPodNets:
+  - "10.42.0.0/16"
+clusterSvcNets:
+  - "10.43.0.0/16"
+
+additionalApiServerCertSans: &sans
+  - "127.0.0.1"
+  - "192.168.42.40"
+  - "pylon.ciacon.ie"
+  - "pylon.lan.fnord"
+additionalMachineCertSans: *sans
+
+# Disable built-in CNI to use Cilium
+cniConfig:
+  name: none
+
+nodes:
+  - hostname: "tal01"
+    ipAddress: "192.168.42.41"
+    installDisk: "/dev/nvme0n1"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/bf2113e1bea48d566f7d1e08eb780f832ccb56bbd7cf2f95769f7a04f9f2b184
+    controlPlane: true
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "c8:f7:50:5f:ea:f9"
+        dhcp: false
+        addresses:
+          - "192.168.42.41/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "192.168.42.1"
+        mtu: 1500
+        vip:
+          ip: "192.168.42.40"
+  - hostname: "tal02"
+    ipAddress: "192.168.42.42"
+    installDisk: "/dev/sda"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/ee21ef4a5ef808a9b7484cc0dda0f25075021691c8c09a276591eedb638ea1f9
+    controlPlane: true
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "dc:a6:32:82:8c:09"
+        dhcp: false
+        addresses:
+          - "192.168.42.42/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "192.168.42.1"
+        mtu: 1500
+        vip:
+          ip: "192.168.42.40"
+
+# Global patches
+patches:
+  - "@./patches/global/machine-files.yaml"
+  - "@./patches/global/machine-kubelet.yaml"
+  - "@./patches/global/machine-network.yaml"
+  - "@./patches/global/machine-sysctls.yaml"
+  - "@./patches/global/machine-time.yaml"
+
+# Controller patches
+controlPlane:
+  patches:
+    - "@./patches/controller/admission-controller-patch.yaml"
+    - "@./patches/controller/cluster.yaml"
+
