@@ -64,6 +64,26 @@ nodes:
         vip:
           ip: "192.168.42.40"
 
+  - hostname: "tal03"
+    ipAddress: "192.168.42.42"
+    installDisk: "/dev/vda"
+    machineSpec:
+      secureboot: false
+    talosImageURL: factory.talos.dev/installer/b027a2d9dddfa5c0752c249cf3194bb5c62294dc7cba591f3bec8119ab578aea
+    controlPlane: true
+    networkInterfaces:
+      - deviceSelector:
+          hardwareAddr: "dc:a6:32:82:8c:10"
+        dhcp: false
+        addresses:
+          - "192.168.42.43/24"
+        routes:
+          - network: "0.0.0.0/0"
+            gateway: "192.168.42.1"
+        mtu: 1500
+        vip:
+          ip: "192.168.42.40"
+
 # Global patches
 patches:
   - "@./patches/global/machine-files.yaml"
@@ -77,4 +97,3 @@ controlPlane:
   patches:
     - "@./patches/controller/admission-controller-patch.yaml"
     - "@./patches/controller/cluster.yaml"
-
